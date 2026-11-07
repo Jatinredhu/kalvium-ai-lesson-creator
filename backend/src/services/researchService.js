@@ -4,10 +4,12 @@ import ytSearch from 'yt-search';
 /**
  * Multi-Source Research Service
  * Integrates:
- * 1. Books (Google Books API + OpenLibrary)
+ * 1. Books (OpenLibrary + Google Books API)
  * 2. Web Articles & Authoritative Specs (Wikipedia API + MDN/RFC curated links)
  * 3. YouTube Educational Videos (yt-search)
  */
+
+const USER_AGENT = 'LessonCraftAI/1.0 (Educational Tool; mailto:research@lessoncraft.dev)';
 
 export const researchSources = async (title, learningObjective) => {
   const query = `${title} ${learningObjective}`.trim();
@@ -30,63 +32,73 @@ export const researchSources = async (title, learningObjective) => {
   };
 };
 
-// 1. Fetch Books via Google Books API & OpenLibrary
+// 1. Fetch Books via OpenLibrary (No rate limits) + Google Books API
 async function fetchBooks(title, objective) {
   const books = [];
+
+  // Try OpenLibrary first (reliable and no aggressive 429 IP rate limits)
   try {
-    const gbooksUrl = `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(title)}&maxResults=4`;
-    const res = await axios.get(gbooksUrl, { timeout: 6000 });
-    if (res.data && res.data.items) {
-      for (const item of res.data.items) {
-        const info = item.volumeInfo || {};
+    const olUrl = `https://openlibrary.org/search.json?q=${encodeURIComponent(title)}&limit=3`;
+    const res = await axios.get(olUrl, { 
+      timeout: 5000,
+      headers: { 'User-Agent': USER_AGENT }
+    });
+    if (res.data && res.data.docs) {
+      for (const doc of res.data.docs) {
         books.push({
-          title: info.title || 'Untitled',
-          authors: info.authors || ['Unknown Author'],
-          publishedYear: info.publishedDate ? info.publishedDate.substring(0, 4) : 'N/A',
-          description: info.description ? (info.description.substring(0, 240) + '...') : 'Comprehensive text covering web and protocol fundamentals.',
-          previewLink: info.previewLink || info.infoLink || `https://books.google.com/books?q=${encodeURIComponent(title)}`,
-          source: 'Google Books'
+          title: doc.title,
+          authors: doc.author_name ? doc.author_name.slice(0, 2) : ['Various Authors'],
+          publishedYear: doc.first_publish_year ? String(doc.first_publish_year) : 'Recent',
+          description: `Authoritative reference publication on ${doc.title}.`,
+          previewLink: `https://openlibrary.org${doc.key || ''}`,
+          source: 'Open Library'
         });
       }
     }
-  } catch (err) {
-    console.warn('[Research] Google Books fetch warning:', err.message);
+  } catch (e) {
+    // silently continue to Google Books
   }
 
-  // If Google Books returned fewer than 2 books, supplement with OpenLibrary
-  if (books.length < 2) {
+  // Supplement with Google Books if needed
+  if (books.length < 3) {
     try {
-      const olUrl = `https://openlibrary.org/search.json?q=${encodeURIComponent(title)}&limit=3`;
-      const res = await axios.get(olUrl, { timeout: 5000 });
-      if (res.data && res.data.docs) {
-        for (const doc of res.data.docs) {
+      const gbooksUrl = `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(title)}&maxResults=3`;
+      const res = await axios.get(gbooksUrl, { 
+        timeout: 4000,
+        headers: { 'User-Agent': USER_AGENT }
+      });
+      if (res.data && res.data.items) {
+        for (const item of res.data.items) {
+          const info = item.volumeInfo || {};
           books.push({
-            title: doc.title,
-            authors: doc.author_name ? doc.author_name.slice(0, 2) : ['Various Authors'],
-            publishedYear: doc.first_publish_year ? String(doc.first_publish_year) : 'Recent',
-            description: `Reference library publication index for ${doc.title}.`,
-            previewLink: `https://openlibrary.org${doc.key || ''}`,
-            source: 'Open Library'
+            title: info.title || 'Untitled',
+            authors: info.authors || ['Unknown Author'],
+            publishedYear: info.publishedDate ? info.publishedDate.substring(0, 4) : 'N/A',
+            description: info.description ? (info.description.substring(0, 220) + '...') : 'Technical text covering web and protocol architecture.',
+            previewLink: info.previewLink || info.infoLink || `https://books.google.com/books?q=${encodeURIComponent(title)}`,
+            source: 'Google Books'
           });
         }
       }
-    } catch (e) {
-      // ignore
+    } catch (err) {
+      // If Google Books hits 429 rate limit on public IP, fallback seamlessly
     }
   }
 
   return books.length > 0 ? books.slice(0, 4) : getFallbackBooks(title);
 }
 
-// 2. Fetch Web Articles (Wikipedia Search API + MDN Reference Links)
+// 2. Fetch Web Articles (Wikipedia Search API with compliant User-Agent + Official Standards)
 async function fetchWebArticles(title, objective) {
   const articles = [];
   try {
     const wikiUrl = `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(title)}&format=json&utf8=1&origin=*`;
-    const res = await axios.get(wikiUrl, { timeout: 5000 });
+    const res = await axios.get(wikiUrl, { 
+      timeout: 5000,
+      headers: { 'User-Agent': USER_AGENT }
+    });
     if (res.data && res.data.query && res.data.query.search) {
       for (const item of res.data.query.search.slice(0, 3)) {
-        // Strip HTML tags from snippet
         const cleanSnippet = item.snippet.replace(/<[^>]+>/g, '');
         articles.push({
           title: item.title,
@@ -98,7 +110,7 @@ async function fetchWebArticles(title, objective) {
       }
     }
   } catch (err) {
-    console.warn('[Research] Wikipedia API warning:', err.message);
+    // fallback cleanly
   }
 
   // Add Official Web Standards / MDN documentation based on topic
@@ -148,7 +160,7 @@ async function fetchYouTubeVideos(title, objective) {
       }));
     }
   } catch (err) {
-    console.warn('[Research] YouTube search warning:', err.message);
+    // fallback cleanly
   }
   return getFallbackYouTubeVideos(title);
 }
