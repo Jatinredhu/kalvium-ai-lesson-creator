@@ -104,7 +104,7 @@ const LessonSchema = new mongoose.Schema({
     references: [
       {
         title: String,
-        type: String, // 'book', 'article', 'spec'
+        type: { type: String, default: 'article' },
         url: String,
         citation: String
       }
@@ -118,7 +118,7 @@ const LessonSchema = new mongoose.Schema({
     issues: [
       {
         id: String,
-        type: String, // 'factual_error', 'unsupported_claim', 'source_reliability', 'gap'
+        type: { type: String, default: 'factual_error' },
         severity: String, // 'high', 'medium', 'low'
         section: String,
         issue: String,
@@ -136,7 +136,7 @@ const LessonSchema = new mongoose.Schema({
     issues: [
       {
         id: String,
-        type: String, // 'objective_alignment', 'clarity_structure', 'pacing_timing', 'practical_gap'
+        type: { type: String, default: 'objective_alignment' },
         severity: String,
         section: String,
         issue: String,
