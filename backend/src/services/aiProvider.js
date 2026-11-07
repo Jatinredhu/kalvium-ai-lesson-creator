@@ -28,21 +28,37 @@ export const generateWithAI = async ({ prompt, systemPrompt, apiKey, provider = 
 
   try {
     if (resolvedProvider === 'groq') {
-      const response = await axios.post('https://api.groq.com/openai/v1/chat/completions', {
-        model: 'llama-3.3-70b-versatile',
-        messages: [
-          ...(systemPrompt ? [{ role: 'system', content: systemPrompt }] : []),
-          { role: 'user', content: prompt }
-        ],
-        temperature: 0.3
-      }, {
-        headers: { 
-          Authorization: `Bearer ${activeKey}`,
-          'Content-Type': 'application/json'
-        },
-        timeout: 25000
-      });
-      return response.data?.choices?.[0]?.message?.content || null;
+      // llama-3.1-8b-instant is universally available to all free-tier Groq accounts
+      const modelsToTry = ['llama-3.1-8b-instant', 'llama-3.3-70b-versatile', 'llama3-70b-8192', 'mixtral-8x7b-32768'];
+      let lastErr = null;
+
+      for (const groqModel of modelsToTry) {
+        try {
+          const response = await axios.post('https://api.groq.com/openai/v1/chat/completions', {
+            model: groqModel,
+            messages: [
+              ...(systemPrompt ? [{ role: 'system', content: systemPrompt }] : []),
+              { role: 'user', content: prompt }
+            ],
+            temperature: 0.3
+          }, {
+            headers: { 
+              Authorization: `Bearer ${activeKey}`,
+              'Content-Type': 'application/json'
+            },
+            timeout: 25000
+          });
+          return response.data?.choices?.[0]?.message?.content || null;
+        } catch (modelErr) {
+          lastErr = modelErr;
+          if (modelErr.response?.status === 404) {
+            // Model not found on this tier, try next available model
+            continue;
+          }
+          throw modelErr;
+        }
+      }
+      throw lastErr;
 
     } else if (resolvedProvider === 'gemini') {
       // Try gemini-1.5-flash

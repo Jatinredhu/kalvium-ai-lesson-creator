@@ -96,11 +96,11 @@ export default function SettingsModal({ isOpen, onClose }) {
                 />
                 <div>
                   <div className="flex items-center gap-1.5">
-                    <span className="text-xs font-bold text-slate-900">Groq Cloud (Llama 3.3 70B)</span>
+                    <span className="text-xs font-bold text-slate-900">Groq Cloud (Llama 3.1 Instant)</span>
                     <span className="text-[10px] font-semibold px-1.5 py-0.2 bg-emerald-100 text-emerald-800 rounded">Free Tier</span>
                   </div>
                   <span className="block text-[11px] text-slate-500 leading-snug">
-                    Ultra-fast open models at console.groq.com.
+                    Ultra-fast open models via free API key at console.groq.com.
                   </span>
                 </div>
               </label>
