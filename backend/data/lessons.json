@@ -1,0 +1,238 @@
+[
+  {
+    "_id": "81f646c8-0c97-4ab8-b721-e1b7404669e2",
+    "title": "HTTP Requests and Responses",
+    "learningObjective": "Explain GET and POST methods and distinguish between 2xx, 4xx, and 5xx response status categories.",
+    "researchData": {
+      "books": [
+        {
+          "title": "HTTP: The Definitive Guide",
+          "authors": [
+            "David Gourley",
+            "Brian Totty",
+            "Marjorie Sayer"
+          ],
+          "publishedYear": "2002",
+          "description": "The foundational architectural reference covering HTTP requests, methods, headers, and status code taxonomies.",
+          "previewLink": "https://www.oreilly.com/library/view/http-the-definitive/1565925092/",
+          "source": "O'Reilly Media"
+        },
+        {
+          "title": "High Performance Browser Networking",
+          "authors": [
+            "Ilya Grigorik"
+          ],
+          "publishedYear": "2013",
+          "description": "Comprehensive analysis of TCP, HTTP/1.1, HTTP/2, request-response lifecycles, and network performance.",
+          "previewLink": "https://hpbn.co/",
+          "source": "O'Reilly"
+        }
+      ],
+      "webArticles": [
+        {
+          "title": "MDN Web Docs: HTTP Methods & Status Codes",
+          "url": "https://developer.mozilla.org/en-US/docs/Web/HTTP",
+          "snippet": "Official standards-based developer documentation detailing Hypertext Transfer Protocol (HTTP), HTTP verbs (GET, POST), and RFC response status codes.",
+          "sourceName": "MDN Web Docs (Mozilla)",
+          "reliability": "Authoritative Official Documentation"
+        },
+        {
+          "title": "IETF RFC 9110: HTTP Semantics",
+          "url": "https://www.rfc-editor.org/rfc/rfc9110.html",
+          "snippet": "The Internet Engineering Task Force (IETF) official specification governing HTTP method definitions and standard status code semantics.",
+          "sourceName": "IETF RFC Standards",
+          "reliability": "Primary Source Specification"
+        }
+      ],
+      "youtubeVideos": [
+        {
+          "title": "HTTP Crash Course & Status Codes Explained",
+          "url": "https://www.youtube.com/watch?v=iYM2zFP3Zn0",
+          "videoId": "iYM2zFP3Zn0",
+          "channelName": "Traversy Media",
+          "duration": "22:15",
+          "views": 1200000,
+          "thumbnail": "https://img.youtube.com/vi/iYM2zFP3Zn0/hqdefault.jpg",
+          "relevanceNote": "In-depth explanation of Client-Server architecture, GET vs POST requests, and HTTP status codes."
+        },
+        {
+          "title": "HTTP Methods: GET vs POST Explained Simply",
+          "url": "https://www.youtube.com/watch?v=2JYT5f2isg4",
+          "videoId": "2JYT5f2isg4",
+          "channelName": "Fireship",
+          "duration": "06:30",
+          "views": 750000,
+          "thumbnail": "https://img.youtube.com/vi/2JYT5f2isg4/hqdefault.jpg",
+          "relevanceNote": "Concise breakdown of idempotency, request payloads, security considerations, and status code patterns."
+        }
+      ]
+    },
+    "content": {
+      "overview": "In this 45-minute intensive lesson, students will demystify the backbone of the World Wide Web: the Hypertext Transfer Protocol (HTTP) Request-Response cycle. \n\nThrough visual mental models, live HTTP packet inspections, and hands-on JavaScript `fetch` simulations, learners will understand how web clients communicate with web servers. By the end of this session, learners will master the semantic differences between GET and POST methods—including query parameters, request bodies, idempotency, and security implications—and build instinctive intuition for categorizing HTTP status codes across the 2xx (Success), 4xx (Client Error), and 5xx (Server Error) classes.",
+      "timeline": [
+        {
+          "timeRange": "00:00 - 10:00 (10 mins)",
+          "title": "Phase 1: Architecture of an HTTP Dialogue",
+          "concept": "The Client-Server Request-Response Lifecycle",
+          "details": "Introduce HTTP as a stateless application-layer protocol built on TCP/IP. Walk through what happens when an instructor or student types a URL in a browser or submits a form: DNS resolution, TCP handshake, the HTTP Request message, Server processing, and the HTTP Response message.",
+          "codeOrExample": "CLIENT                           SERVER\n  |                                |\n  |--- 1. HTTP GET /api/users ---->| (Request Headers + URL params)\n  |                                | [Processes query in DB]\n  |<-- 2. HTTP 200 OK (JSON) ------| (Response Headers + Payload)\n  |                                |"
+        },
+        {
+          "timeRange": "10:00 - 25:00 (15 mins)",
+          "title": "Phase 2: Deep Dive into GET vs POST & Status Code Taxonomies",
+          "concept": "Method Semantics, Idempotency & The 2xx/4xx/5xx Triad",
+          "details": "Systematically contrast GET and POST. Emphasize that GET is for safe retrieval without side effects (idempotent, cacheable, query params visible in URL), while POST creates new entities or submits payloads (carries a request body, non-idempotent, uncached by default). Then unpack response status codes: 2xx represents successful transactions (200 OK, 201 Created), 4xx flags client errors (400 Bad Request, 401 Unauthorized, 404 Not Found), and 5xx flags server faults (500 Internal Error, 502 Bad Gateway, 503 Service Unavailable).",
+          "codeOrExample": "// GET Request Example\nGET /products?category=books&limit=10 HTTP/1.1\nHost: api.example.com\nAccept: application/json\n\n// POST Request Example\nPOST /products HTTP/1.1\nHost: api.example.com\nContent-Type: application/json\nContent-Length: 54\n\n{\n  \"name\": \"Designing Data-Intensive Apps\",\n  \"price\": 39.99\n}"
+        },
+        {
+          "timeRange": "25:00 - 35:00 (10 mins)",
+          "title": "Phase 3: Hands-On Interactive Lab (Live Fetch & Error Handling)",
+          "concept": "Applying HTTP Client APIs & Parsing Status Categories",
+          "details": "Students write a resilient client-side API helper using JavaScript async/await and Fetch API. The challenge requires correctly formulating a GET query, crafting a POST request with headers and JSON body, and using conditional branching to gracefully handle 2xx success vs 4xx client errors and 5xx server outages.",
+          "codeOrExample": "async function submitUserData(payload) {\n  const response = await fetch('/api/v1/users', {\n    method: 'POST',\n    headers: { 'Content-Type': 'application/json' },\n    body: JSON.stringify(payload)\n  });\n  \n  if (response.status >= 200 && response.status < 300) {\n    return { ok: true, data: await response.json() };\n  } else if (response.status >= 400 && response.status < 500) {\n    throw new Error(`Client Error (${response.status}): Check your input format.`);\n  } else {\n    throw new Error(`Server Error (${response.status}): The server encountered an issue. Try again later.`);\n  }\n}"
+        },
+        {
+          "timeRange": "35:00 - 45:00 (10 mins)",
+          "title": "Phase 4: Knowledge Checks, Common Pitfalls & Wrap-Up",
+          "concept": "Pedagogical Evaluation & Misconception Clarification",
+          "details": "Conduct an interactive 4-question knowledge check. Clarify dangerous anti-patterns (such as sending passwords via GET query params, or servers responding with HTTP 200 containing error messages in the body). Distinguish between 401 Unauthorized (missing/bad credentials) and 403 Forbidden (authenticated but lacks role permissions).",
+          "codeOrExample": "Key Takeaway Rule:\n- 2xx: \"Everything worked smoothly on both sides.\"\n- 4xx: \"You (the client) made a mistake; correct your request before retrying.\"\n- 5xx: \"The server failed; client request was syntactically fine.\""
+        }
+      ],
+      "markdownBody": "# HTTP Requests and Responses: GET, POST & Status Code Mastery\n\n**Target Duration:** 45 Minutes  \n**Target Audience:** Undergraduate / Junior Software Engineers  \n**Core Objective:** Explain GET and POST methods and distinguish between 2xx, 4xx, and 5xx response status categories.\n\n---\n\n## 1. Lesson Overview & 45-Minute Timeline Breakdown\n\n| Time Window | Phase | Primary Learning Activity |\n|:---|:---|:---|\n| **00:00 - 10:00** | **Phase 1: Foundations** | The Client-Server Conversation, Packet Anatomy & TCP/IP handshake |\n| **10:00 - 25:00** | **Phase 2: Deep Dive** | GET vs POST semantics, Idempotency, and the 2xx, 4xx, 5xx Status Matrix |\n| **25:00 - 35:00** | **Phase 3: Hands-On Lab** | Live HTTP inspection & building a status-aware API wrapper |\n| **35:00 - 45:00** | **Phase 4: Evaluation** | Interactive Knowledge Check, Anti-patterns & Practical Wrap-up |\n\n---\n\n## 2. Phase 1: Anatomy of an HTTP Transaction (00:00 - 10:00)\n\nEvery time you browse the web or trigger an action inside a mobile app, your client software (e.g., Google Chrome, a mobile app, or a Node.js microservice) opens an **HTTP Dialogue** with an upstream server.\n\nAn HTTP transaction consists of two immutable messages:\n1. **The HTTP Request**: Sent by the client to ask the server to perform an action or supply a resource.\n2. **The HTTP Response**: Returned by the server with a numeric **Status Code** and optional payload.\n\n### The Request Structure\n```http\nPOST /api/v1/enrollment HTTP/1.1\nHost: kalvium.example.com\nUser-Agent: Mozilla/5.0\nContent-Type: application/json\nContent-Length: 42\n\n{\"studentId\": \"KV-2026\", \"course\": \"CS101\"}\n```\n\n1. **Start Line**: Method (`POST`), Request Target (`/api/v1/enrollment`), and HTTP Version (`HTTP/1.1`).\n2. **Headers**: Key-value metadata providing instructions (content format, authentication tokens, caching).\n3. **Empty Line (CRLF)**: Crucial boundary marking end of headers.\n4. **Body**: The actual payload (present in POST, PUT, PATCH; omitted in standard GET).\n\n---\n\n## 3. Phase 2: Core Deep Dive — GET vs. POST (10:00 - 25:00)\n\n### Architectural Comparison Matrix\n\n| Property | `GET` Method | `POST` Method |\n|:---|:---|:---|\n| **Primary Intent** | Retrieve data without side effects | Submit data to be processed / created |\n| **Idempotency** | **Yes** (Calling 10 times yields same state) | **No** (Calling 10 times creates 10 entities) |\n| **Data Location** | URL Query String (`?id=123&sort=asc`) | Request Body Payload (`JSON`, `FormData`) |\n| **Browser Caching** | Cached by default (proxies & CDN) | Never cached by default |\n| **Bookmarking / History** | Yes, URLs can be saved and shared | No, browsers warn before re-submission |\n| **Security Note** | Never pass sensitive credentials | Encrypted in body when using TLS/HTTPS |\n\n> **Crucial Rule:** `GET` requests must be **safe and idempotent**. They should never alter state on the server (e.g., never create a user or delete an invoice via GET).\n\n---\n\n## 4. The Response Status Code Triad: 2xx, 4xx, and 5xx\n\nHTTP status codes are 3-digit integers categorized by their first digit:\n\n### 🟢 2xx: Success (The Request Succeeded)\nThe server received, understood, and successfully fulfilled the client request.\n- **`200 OK`**: Standard success for GET and successful updates.\n- **`201 Created`**: Returned by POST when a new resource was successfully generated (often includes a `Location` header).\n- **`204 No Content`**: Operation succeeded, but no body is returned (frequently used for DELETE or empty updates).\n\n### 🟠 4xx: Client Errors (The Problem is on the Requester's End)\nThe client sent something incorrect or lacks proper authorization. The request should **not** be repeated without modification.\n- **`400 Bad Request`**: Malformed syntax, invalid JSON schema, or missing required parameter.\n- **`401 Unauthorized`**: Authentication credentials are missing or invalid (e.g., missing API token).\n- **`403 Forbidden`**: Server knows who you are, but you do not have permission to access the resource.\n- **`404 Not Found`**: The requested URI does not map to any existing resource.\n- **`422 Unprocessable Entity`**: The payload syntax is valid JSON, but business validation failed (e.g., invalid email format).\n\n### 🔴 5xx: Server Errors (The Server Failed)\nThe client sent a valid request, but the server encountered an unhandled exception or upstream infrastructure fault.\n- **`500 Internal Server Error`**: Uncaught exception or backend crash.\n- **`502 Bad Gateway`**: The reverse proxy (Nginx, Cloudflare) received an invalid response from the backend application process.\n- **`503 Service Unavailable`**: Server is temporarily overloaded, undergoing maintenance, or rate-limited upstream.\n- **`504 Gateway Timeout`**: Backend failed to respond within the reverse proxy's timeout window.\n\n---\n\n## 5. Phase 3: Hands-On Exercise (25:00 - 35:00)\n\n### Challenge: Implement a Resilient HTTP Client Function\nBuild a JavaScript function `dispatchRequest` that issues a POST request, checks the response category, and throws actionable error messages tailored to 2xx, 4xx, and 5xx.\n\n```javascript\nasync function dispatchRequest(url, payload) {\n  try {\n    const res = await fetch(url, {\n      method: 'POST',\n      headers: { 'Content-Type': 'application/json' },\n      body: JSON.stringify(payload)\n    });\n\n    if (res.ok) { // res.ok evaluates to true for status 200-299\n      const data = await res.json();\n      console.log('✅ 2xx Success:', data);\n      return data;\n    }\n\n    if (res.status >= 400 && res.status < 500) {\n      console.error(`⚠️ 4xx Client Error (${res.status}): Please check parameters.`);\n      return { error: 'client_error', status: res.status };\n    }\n\n    if (res.status >= 500) {\n      console.error(`🔥 5xx Server Error (${res.status}): Backend service failure.`);\n      return { error: 'server_error', status: res.status };\n    }\n  } catch (networkErr) {\n    console.error('🌐 Network Failure (Offline / DNS / CORS):', networkErr.message);\n  }\n}\n```\n\n---\n\n## 6. Phase 4: Knowledge Checks (35:00 - 45:00)\n\nTest your understanding with these foundational scenarios:\n\n1. **Scenario 1:** A user submits a payment form. Should the browser issue a GET or a POST request? Why?\n   * *Answer:* **POST**. Financial transactions alter server state (charging money, creating invoice) and require a secure request body.\n2. **Scenario 2:** You send a request without an `Authorization` header and receive `401`. Is the client at fault or the server?\n   * *Answer:* **The client (4xx)**. The client omitted required credentials.\n3. **Scenario 3:** Your database server runs out of disk space, causing incoming requests to throw uncaught exceptions. Which status class must your API return?\n   * *Answer:* **5xx (specifically 500 or 503)**. The client's request was fine; the server broke.\n\n---\n\n## 7. Supplementary Video Resources & Bibliography\n\n### Video Resources\n1. **[HTTP Crash Course & Status Codes Explained](https://www.youtube.com/watch?v=iYM2zFP3Zn0)**  \n   - Channel: *Traversy Media* (Duration: 22:15)  \n   - Key Focus: In-depth explanation of Client-Server architecture, GET vs POST requests, and HTTP status codes.\n\n2. **[HTTP Methods: GET vs POST Explained Simply](https://www.youtube.com/watch?v=2JYT5f2isg4)**  \n   - Channel: *Fireship* (Duration: 06:30)  \n   - Key Focus: Concise breakdown of idempotency, request payloads, security considerations, and status code patterns.\n\n### Researched References & Authoritative Reading\n1. **HTTP: The Definitive Guide**  \n   - Authors: David Gourley, Brian Totty, Marjorie Sayer (2002)  \n   - Source: [O'Reilly Media](https://www.oreilly.com/library/view/http-the-definitive/1565925092/)  \n   - Note: The foundational architectural reference covering HTTP requests, methods, headers, and status code taxonomies.\n\n2. **High Performance Browser Networking**  \n   - Authors: Ilya Grigorik (2013)  \n   - Source: [O'Reilly](https://hpbn.co/)  \n   - Note: Comprehensive analysis of TCP, HTTP/1.1, HTTP/2, request-response lifecycles, and network performance.\n\n3. **[MDN Web Docs: HTTP Methods & Status Codes](https://developer.mozilla.org/en-US/docs/Web/HTTP)**  \n   - Source: *MDN Web Docs (Mozilla)*  \n   - Reliability: Authoritative Official Documentation  \n   - Summary: Official standards-based developer documentation detailing Hypertext Transfer Protocol (HTTP), HTTP verbs (GET, POST), and RFC response status codes.\n\n4. **[IETF RFC 9110: HTTP Semantics](https://www.rfc-editor.org/rfc/rfc9110.html)**  \n   - Source: *IETF RFC Standards*  \n   - Reliability: Primary Source Specification  \n   - Summary: The Internet Engineering Task Force (IETF) official specification governing HTTP method definitions and standard status code semantics.\n\n\n### Applied QC Enhancement (Phase 2: Status Code Taxonomy)\n> **Common Mistake:** Although named `401 Unauthorized`, RFC specifies it means **Unauthenticated** (the server does not know who you are). In contrast, `403 Forbidden` means the server knows your identity, but your user role lacks permission.\n",
+      "practicalExercise": {
+        "title": "HTTP Client Diagnostic & Status Code Router",
+        "instructions": "Implement an asynchronous function `fetchOrHandleError(endpoint, method, body)` that correctly formats GET/POST requests and handles 2xx, 4xx, and 5xx response categories.",
+        "starterCode": "// Starter Code: Complete the status code router\nasync function fetchOrHandleError(endpoint, method = 'GET', body = null) {\n  const options = { method };\n  if (method === 'POST' && body) {\n    options.headers = { 'Content-Type': 'application/json' };\n    options.body = JSON.stringify(body);\n  }\n\n  // TODO: Execute fetch and return diagnostic object with { category: '2xx'|'4xx'|'5xx', data, status }\n  const response = await fetch(endpoint, options);\n  \n  // Write conditional logic below:\n  \n}\n",
+        "solutionCode": "async function fetchOrHandleError(endpoint, method = 'GET', body = null) {\n  const options = { method };\n  if (method === 'POST' && body) {\n    options.headers = { 'Content-Type': 'application/json' };\n    options.body = JSON.stringify(body);\n  }\n\n  try {\n    const res = await fetch(endpoint, options);\n    const status = res.status;\n\n    if (status >= 200 && status < 300) {\n      const data = await res.json().catch(() => null);\n      return { category: '2xx', status, success: true, data };\n    } else if (status >= 400 && status < 500) {\n      return { category: '4xx', status, success: false, message: 'Client request invalid or unauthorized' };\n    } else if (status >= 500 && status < 600) {\n      return { category: '5xx', status, success: false, message: 'Server infrastructure error' };\n    } else {\n      return { category: 'other', status, success: false, message: 'Unclassified response' };\n    }\n  } catch (err) {\n    return { category: 'network_error', success: false, message: err.message };\n  }\n}"
+      },
+      "knowledgeCheck": [
+        {
+          "question": "Which of the following statements accurately characterizes an HTTP GET request compared to POST?",
+          "options": [
+            "GET requests are non-idempotent and carry sensitive data inside the HTTP payload body.",
+            "GET requests are safe and idempotent, meaning repeated identical requests should not change the state of the server.",
+            "GET requests cannot carry query parameters in the URL.",
+            "POST requests are cached automatically by all web browsers and content delivery networks (CDNs)."
+          ],
+          "correctAnswerIndex": 1,
+          "explanation": "According to RFC 9110, GET is defined as a safe and idempotent method used strictly to retrieve representations of resources without altering server state."
+        },
+        {
+          "question": "A client sends an API request to /api/orders without a Bearer authentication token. What status code and category should the server return?",
+          "options": [
+            "200 OK (2xx Success)",
+            "401 Unauthorized (4xx Client Error)",
+            "500 Internal Server Error (5xx Server Error)",
+            "404 Not Found (4xx Client Error)"
+          ],
+          "correctAnswerIndex": 1,
+          "explanation": "401 Unauthorized belongs to the 4xx Client Error category and explicitly signals that authentication credentials are required and either missing or invalid."
+        },
+        {
+          "question": "What distinguishes a 4xx error from a 5xx error in system architecture troubleshooting?",
+          "options": [
+            "4xx means the backend code threw an unhandled runtime exception; 5xx means the user typed a typo.",
+            "4xx indicates a client-side problem (e.g. invalid parameter, unauthorized); 5xx indicates a server-side problem (e.g. database crash, gateway timeout).",
+            "4xx codes should always be retried without changing the request; 5xx codes should never be retried.",
+            "There is no distinction; they are interchangeable error conventions."
+          ],
+          "correctAnswerIndex": 1,
+          "explanation": "The fundamental architectural divide is responsibility: 4xx errors state that the client provided something erroneous; 5xx errors state that the client was syntactically correct, but the server failed to fulfill it."
+        }
+      ],
+      "supplementaryResources": [
+        {
+          "title": "HTTP Crash Course & Status Codes Explained",
+          "type": "video",
+          "url": "https://www.youtube.com/watch?v=iYM2zFP3Zn0",
+          "note": "Recommended supplementary visual explanation (22:15) by Traversy Media"
+        },
+        {
+          "title": "HTTP Methods: GET vs POST Explained Simply",
+          "type": "video",
+          "url": "https://www.youtube.com/watch?v=2JYT5f2isg4",
+          "note": "Recommended supplementary visual explanation (06:30) by Fireship"
+        }
+      ],
+      "references": [
+        {
+          "title": "HTTP: The Definitive Guide",
+          "type": "book",
+          "url": "https://www.oreilly.com/library/view/http-the-definitive/1565925092/",
+          "citation": "HTTP: The Definitive Guide by David Gourley, Brian Totty, Marjorie Sayer (2002) - O'Reilly Media"
+        },
+        {
+          "title": "High Performance Browser Networking",
+          "type": "book",
+          "url": "https://hpbn.co/",
+          "citation": "High Performance Browser Networking by Ilya Grigorik (2013) - O'Reilly"
+        },
+        {
+          "title": "MDN Web Docs: HTTP Methods & Status Codes",
+          "type": "article",
+          "url": "https://developer.mozilla.org/en-US/docs/Web/HTTP",
+          "citation": "MDN Web Docs: HTTP Methods & Status Codes - MDN Web Docs (Mozilla)"
+        },
+        {
+          "title": "IETF RFC 9110: HTTP Semantics",
+          "type": "article",
+          "url": "https://www.rfc-editor.org/rfc/rfc9110.html",
+          "citation": "IETF RFC 9110: HTTP Semantics - IETF RFC Standards"
+        }
+      ]
+    },
+    "createdAt": "2026-11-07T11:27:57.151Z",
+    "updatedAt": "2026-11-07T11:27:57.160Z",
+    "qcReport1": {
+      "status": "issues_found",
+      "score": 91,
+      "summary": "Factual Accuracy Audit completed. Evaluated technical definitions against RFC 9110 and verified 4 research citations. Found 2 review items for factual precision.",
+      "lastAuditedAt": "2026-11-07T11:27:57.156Z",
+      "issues": [
+        {
+          "id": "qc1_64d50c",
+          "type": "factual_error",
+          "severity": "medium",
+          "section": "Phase 2: Status Code Taxonomy",
+          "issue": "The distinction between 401 Unauthorized (unauthenticated/missing credentials) and 403 Forbidden (authenticated, but lacking permissions) is often confused by junior learners and requires precise RFC terminology.",
+          "recommendation": "Add a clarifying distinction box highlighting that 401 really means \"Unauthenticated\", whereas 403 means \"Authenticated but unauthorized\".",
+          "suggestedReplacement": "> **Common Mistake:** Although named `401 Unauthorized`, RFC specifies it means **Unauthenticated** (the server does not know who you are). In contrast, `403 Forbidden` means the server knows your identity, but your user role lacks permission.",
+          "status": "applied"
+        },
+        {
+          "id": "qc1_15abdc",
+          "type": "unsupported_claim",
+          "severity": "low",
+          "section": "Phase 3: Hands-On Lab Error Handling",
+          "issue": "The error handling snippet logs 5xx errors but does not discuss exponential backoff or the risk of retrying non-idempotent POST requests on 5xx network timeouts.",
+          "recommendation": "Add a note advising that clients must be careful when retrying POST requests upon receiving 500 or 504 errors without idempotency keys.",
+          "suggestedReplacement": "// Caution: Never blindly retry POST requests on 500/504 errors without an Idempotency-Key header, as the server may have processed the charge before crashing.",
+          "status": "pending"
+        }
+      ]
+    },
+    "qcReport2": {
+      "status": "issues_found",
+      "score": 98,
+      "summary": "Instructional Quality Audit completed. Evaluated 45-minute pacing curve, learning objective alignment (GET, POST, 2xx/4xx/5xx), and hands-on lab scaffolding. Generated 1 actionable pedagogical recommendations.",
+      "lastAuditedAt": "2026-11-07T11:27:57.157Z",
+      "issues": [
+        {
+          "id": "qc2_cfa63a",
+          "type": "clarity_structure",
+          "severity": "low",
+          "section": "Phase 4: Knowledge Checks",
+          "issue": "Multiple-choice questions evaluate factual recall, but adding a diagnostic scenario where learners debug a real curl command increases higher-order Bloom taxonomy engagement.",
+          "recommendation": "Include a \"Find the Bug in this HTTP Request\" question to test code analysis skills.",
+          "suggestedReplacement": "**Diagnostic Question:** An engineer sends `GET /api/payment` with `{\"creditCard\": \"...\"}` in the body and receives unexpected behavior. What are the two design violations? (Answer: Sensitive data in GET + GET should not have side effects).",
+          "status": "pending"
+        }
+      ]
+    },
+    "instructorEdits": {
+      "notes": "Applied RFC 9110 enhancement from QC1",
+      "version": 2
+    }
+  }
+]

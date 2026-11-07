@@ -1,0 +1,22 @@
+{
+  "name": "kalvium-ai-lesson-creator",
+  "version": "1.0.0",
+  "description": "AI-Powered Lesson Creation Tool with Multi-Source Research and Dual Quality Control (QC) Layers",
+  "type": "module",
+  "scripts": {
+    "start": "node backend/src/server.js",
+    "build": "npm --prefix frontend run build",
+    "dev:backend": "npm --prefix backend run dev",
+    "dev:frontend": "npm --prefix frontend run dev",
+    "test:pipeline": "node test_pipeline.js"
+  },
+  "keywords": [
+    "kalvium",
+    "ai-research",
+    "lesson-planner",
+    "quality-control",
+    "edtech"
+  ],
+  "author": "Kalvium AI Research Intern Candidate",
+  "license": "ISC"
+}
