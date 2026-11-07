@@ -30,8 +30,9 @@ A production-grade, AI-powered curriculum creation workflow built for modern edu
    - One-click **"Apply Recommendation to Lesson"** action button for each QC finding.
    - Multi-format export: **Markdown (.md)**, **Print-Ready HTML (.html)**, and **Full JSON Bundle (.json)**.
 5. **Production Architecture**:
-   - **Server-Side API Key Configuration**: Clean backend-driven security; users never need to enter API keys on the frontend.
-   - **Resilient Dual Storage**: Connects to MongoDB if available, otherwise seamlessly persists to local storage without crashing.
+   - **Zero-Key Default Mode**: Runs out of the box using an intelligent offline pedagogical synthesizer—evaluators never need an API key to test the app.
+   - **Optional Live AI Integration**: Easily connect **Groq (Free Tier)**, **Google Gemini**, or **OpenAI** via the in-app **⚙️ Settings** modal or `backend/.env`.
+   - **Resilient Dual Storage**: Connects to MongoDB if available, otherwise seamlessly persists to local JSON document storage without crashing.
 
 ---
 
