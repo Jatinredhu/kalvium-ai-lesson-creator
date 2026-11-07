@@ -6,22 +6,17 @@ import ResearchSources from './components/ResearchSources';
 import LessonEditor from './components/LessonEditor';
 import QCAuditPanel from './components/QCAuditPanel';
 import ExportModal from './components/ExportModal';
-import SettingsModal from './components/SettingsModal';
 import { 
   Download, 
-  Sparkles, 
   Layers, 
   BookOpen, 
   ShieldCheck, 
-  FileText, 
-  AlertCircle,
-  RefreshCw
+  AlertCircle 
 } from 'lucide-react';
 
 export default function App() {
   const [lessons, setLessons] = useState([]);
   const [activeLessonId, setActiveLessonId] = useState(null);
-  const [systemStatus, setSystemStatus] = useState(null);
   const [activeTab, setActiveTab] = useState('pipeline'); // 'pipeline' | 'editor' | 'qc'
 
   // Loading states
@@ -32,24 +27,12 @@ export default function App() {
 
   // Modals
   const [isExportOpen, setIsExportOpen] = useState(false);
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [bannerError, setBannerError] = useState('');
 
-  // Fetch initial system status and lessons
+  // Fetch initial lessons
   useEffect(() => {
-    fetchSystemStatus();
     fetchLessons();
   }, []);
-
-  const fetchSystemStatus = async () => {
-    try {
-      const res = await fetch('/api/system/status');
-      const data = await res.json();
-      if (data.ok) setSystemStatus(data);
-    } catch (e) {
-      console.warn('System status fetch warning:', e.message);
-    }
-  };
 
   const fetchLessons = async () => {
     try {
@@ -68,12 +51,6 @@ export default function App() {
 
   const activeLesson = lessons.find((l) => String(l._id) === String(activeLessonId)) || null;
 
-  const getActiveSettings = () => {
-    const provider = localStorage.getItem('kalvium_ai_provider') || 'offline';
-    const apiKey = localStorage.getItem('kalvium_ai_key') || '';
-    return { provider, apiKey };
-  };
-
   // 1. Create Lesson
   const handleCreateLesson = async (formData) => {
     setIsCreating(true);
@@ -91,7 +68,7 @@ export default function App() {
       setLessons((prev) => [created, ...prev]);
       setActiveLessonId(created._id);
 
-      // Immediately kick off research or full pipeline
+      // Immediately run the full automated pipeline
       await handleRunAll(created._id);
     } catch (err) {
       setBannerError(err.message);
@@ -107,7 +84,6 @@ export default function App() {
 
     setLoadingStep(stepKey);
     setBannerError('');
-    const { provider, apiKey } = getActiveSettings();
 
     try {
       const endpoint = 
@@ -118,15 +94,13 @@ export default function App() {
 
       const res = await fetch(endpoint, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ provider, apiKey })
+        headers: { 'Content-Type': 'application/json' }
       });
       const data = await res.json();
       if (!data.ok) throw new Error(data.error || `Step ${stepKey} failed.`);
 
       updateLocalLesson(data.lesson);
 
-      // Smart tab transition: after generation, navigate to studio
       if (stepKey === 'generation') {
         setActiveTab('editor');
       } else if (stepKey === 'qcLayer1' || stepKey === 'qcLayer2') {
@@ -134,7 +108,6 @@ export default function App() {
       }
     } catch (err) {
       setBannerError(err.message);
-      // Re-fetch to capture error state on the step card
       await fetchLessons();
     } finally {
       setLoadingStep(null);
@@ -148,13 +121,11 @@ export default function App() {
 
     setLoadingStep('pipeline');
     setBannerError('');
-    const { provider, apiKey } = getActiveSettings();
 
     try {
       const res = await fetch(`/api/lessons/${id}/pipeline`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ provider, apiKey })
+        headers: { 'Content-Type': 'application/json' }
       });
       const data = await res.json();
       if (!data.ok) throw new Error(data.error || 'Pipeline execution failed.');
@@ -219,14 +190,12 @@ export default function App() {
 
   return (
     <div className="min-h-screen flex flex-col bg-slate-50 font-sans antialiased text-slate-900">
-      {/* Navbar */}
+      {/* Clean Navbar */}
       <Navbar
-        systemStatus={systemStatus}
         lessons={lessons}
         activeLessonId={activeLessonId}
         onSelectLesson={(id) => setActiveLessonId(id)}
         onNewLesson={() => setActiveLessonId(null)}
-        onOpenSettings={() => setIsSettingsOpen(true)}
       />
 
       {/* Main Workspace */}
@@ -247,7 +216,7 @@ export default function App() {
           </div>
         )}
 
-        {/* View 1: New Lesson Form (If no active lesson or clicked New) */}
+        {/* View 1: New Lesson Form */}
         {!activeLesson ? (
           <LessonInputForm
             onSubmit={handleCreateLesson}
@@ -315,7 +284,7 @@ export default function App() {
               </div>
             </div>
 
-            {/* Pipeline Stepper (Always visible to inspect progress & trigger individual retries) */}
+            {/* Pipeline Stepper */}
             <PipelineStepper
               lesson={activeLesson}
               onRunStep={handleRunStep}
@@ -328,7 +297,7 @@ export default function App() {
               <ResearchSources researchData={activeLesson.researchData} />
             )}
 
-            {/* TAB 2: Lesson Studio (Review, Edit & 45-Minute Pacing) */}
+            {/* TAB 2: Lesson Studio */}
             {activeTab === 'editor' && (
               <LessonEditor
                 lesson={activeLesson}
@@ -337,7 +306,7 @@ export default function App() {
               />
             )}
 
-            {/* TAB 3: Dual QC Layers (Factual Accuracy & Instructional Quality) */}
+            {/* TAB 3: Dual QC Layers */}
             {activeTab === 'qc' && (
               <QCAuditPanel
                 lesson={activeLesson}
@@ -355,15 +324,6 @@ export default function App() {
         onClose={() => setIsExportOpen(false)}
         lessonId={activeLesson?._id}
         lessonTitle={activeLesson?.title}
-      />
-
-      {/* Settings Modal */}
-      <SettingsModal
-        isOpen={isSettingsOpen}
-        onClose={() => setIsSettingsOpen(false)}
-        onSaveSettings={({ provider, apiKey }) => {
-          fetchSystemStatus();
-        }}
       />
     </div>
   );

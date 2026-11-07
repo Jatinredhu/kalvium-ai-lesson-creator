@@ -60,10 +60,10 @@ const startServer = async () => {
   await connectDB();
   app.listen(PORT, () => {
     console.log(`====================================================`);
-    console.log(`🚀 Kalvium AI Lesson Creation Tool Running!`);
-    console.log(`🌐 Web App Interface: http://localhost:${PORT}`);
-    console.log(`📡 API Health Check:  http://localhost:${PORT}/api/health`);
-    console.log(`📚 Database Storage:  ${getDbStatus().type}`);
+    console.log(` Kalvium AI Lesson Creation Tool Running!`);
+    console.log(` Web App Interface: http://localhost:${PORT}`);
+    console.log(` API Health Check:  http://localhost:${PORT}/api/health`);
+    console.log(` Database Storage:  ${getDbStatus().type}`);
     console.log(`====================================================`);
   });
 };
