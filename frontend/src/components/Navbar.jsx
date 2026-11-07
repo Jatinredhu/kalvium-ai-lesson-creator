@@ -1,8 +1,9 @@
 import React from 'react';
-import { BookOpen, PlusCircle } from 'lucide-react';
+import { BookOpen, PlusCircle, Settings as SettingsIcon } from 'lucide-react';
 
 export default function Navbar({ 
   onNewLesson, 
+  onOpenSettings,
   lessons = [], 
   activeLessonId, 
   onSelectLesson 
@@ -40,13 +41,21 @@ export default function Navbar({
         )}
 
         {/* Actions */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           <button
             onClick={onNewLesson}
-            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 transition-colors"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 transition-colors"
           >
             <PlusCircle className="w-4 h-4" />
             <span>New Lesson</span>
+          </button>
+
+          <button
+            onClick={onOpenSettings}
+            className="p-1.5 rounded-lg text-slate-500 hover:text-slate-900 hover:bg-slate-100 border border-slate-200 transition-colors"
+            title="AI Engine Configuration"
+          >
+            <SettingsIcon className="w-4 h-4" />
           </button>
         </div>
       </div>

@@ -6,6 +6,7 @@ import ResearchSources from './components/ResearchSources';
 import LessonEditor from './components/LessonEditor';
 import QCAuditPanel from './components/QCAuditPanel';
 import ExportModal from './components/ExportModal';
+import SettingsModal from './components/SettingsModal';
 import { 
   Download, 
   Layers, 
@@ -27,6 +28,7 @@ export default function App() {
 
   // Modals
   const [isExportOpen, setIsExportOpen] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [bannerError, setBannerError] = useState('');
 
   // Fetch initial lessons
@@ -47,6 +49,12 @@ export default function App() {
     } catch (e) {
       console.warn('Lessons fetch warning:', e.message);
     }
+  };
+
+  const getSettings = () => {
+    const provider = localStorage.getItem('lessoncraft_provider') || 'offline';
+    const apiKey = localStorage.getItem('lessoncraft_api_key') || '';
+    return { provider, apiKey };
   };
 
   const activeLesson = lessons.find((l) => String(l._id) === String(activeLessonId)) || null;
@@ -84,6 +92,7 @@ export default function App() {
 
     setLoadingStep(stepKey);
     setBannerError('');
+    const { provider, apiKey } = getSettings();
 
     try {
       const endpoint = 
@@ -94,7 +103,8 @@ export default function App() {
 
       const res = await fetch(endpoint, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' }
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ provider, apiKey })
       });
       const data = await res.json();
       if (!data.ok) throw new Error(data.error || `Step ${stepKey} failed.`);
@@ -121,11 +131,13 @@ export default function App() {
 
     setLoadingStep('pipeline');
     setBannerError('');
+    const { provider, apiKey } = getSettings();
 
     try {
       const res = await fetch(`/api/lessons/${id}/pipeline`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' }
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ provider, apiKey })
       });
       const data = await res.json();
       if (!data.ok) throw new Error(data.error || 'Pipeline execution failed.');
@@ -190,12 +202,13 @@ export default function App() {
 
   return (
     <div className="min-h-screen flex flex-col bg-slate-50 font-sans antialiased text-slate-900">
-      {/* Clean Navbar */}
+      {/* Clean Navbar with subtle Settings gear */}
       <Navbar
         lessons={lessons}
         activeLessonId={activeLessonId}
         onSelectLesson={(id) => setActiveLessonId(id)}
         onNewLesson={() => setActiveLessonId(null)}
+        onOpenSettings={() => setIsSettingsOpen(true)}
       />
 
       {/* Main Workspace */}
@@ -324,6 +337,12 @@ export default function App() {
         onClose={() => setIsExportOpen(false)}
         lessonId={activeLesson?._id}
         lessonTitle={activeLesson?.title}
+      />
+
+      {/* Settings Modal */}
+      <SettingsModal
+        isOpen={isSettingsOpen}
+        onClose={() => setIsSettingsOpen(false)}
       />
     </div>
   );
