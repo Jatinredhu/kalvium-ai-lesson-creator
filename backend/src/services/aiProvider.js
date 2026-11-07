@@ -1,22 +1,24 @@
-import axios from 'axios';
-
 /**
  * Universal AI Provider Client
- * Automatically recognizes:
- * - Groq (starts with 'gsk_') -> llama-3.3-70b-versatile
- * - Gemini (starts with 'AIza') -> gemini-1.5-flash / gemini-2.0-flash
- * - OpenAI (starts with 'sk-') -> gpt-4o-mini
- * - Or respects explicit provider
+ * Supports:
+ * - Groq (qwen/qwen3.8-27b, openai/gpt-oss-120b)
+ * - Google Gemini (gemini-1.5-flash)
+ * - OpenAI (gpt-4o-mini)
  */
 
-export const generateWithAI = async ({ prompt, systemPrompt, apiKey, provider = 'offline' }) => {
+export const generateWithAI = async ({ prompt, systemPrompt, apiKey, provider }) => {
   const activeKey = (apiKey || process.env.GROQ_API_KEY || process.env.GEMINI_API_KEY || process.env.OPENAI_API_KEY || '').trim();
 
-  if (!activeKey || provider === 'offline') {
-    return null; // Fallback cleanly to local synthesizer engine
+  if (!activeKey) {
+    return null; // Offline mode
   }
 
-  // Auto-detect provider based on key format for foolproof execution
+  // If user explicitly chose offline in frontend
+  if (provider === 'offline' && !apiKey) {
+    return null;
+  }
+
+  // Auto-detect provider based on key format
   let resolvedProvider = provider;
   if (activeKey.startsWith('gsk_')) {
     resolvedProvider = 'groq';
@@ -24,44 +26,44 @@ export const generateWithAI = async ({ prompt, systemPrompt, apiKey, provider = 
     resolvedProvider = 'gemini';
   } else if (activeKey.startsWith('sk-')) {
     resolvedProvider = 'openai';
+  } else if (!resolvedProvider || resolvedProvider === 'offline') {
+    resolvedProvider = 'groq';
   }
 
   try {
     if (resolvedProvider === 'groq') {
-      // llama-3.1-8b-instant is universally available to all free-tier Groq accounts
-      const modelsToTry = ['llama-3.1-8b-instant', 'llama-3.3-70b-versatile', 'llama3-70b-8192', 'mixtral-8x7b-32768'];
-      let lastErr = null;
+      const modelsToTry = ['qwen/qwen3.8-27b', 'openai/gpt-oss-120b', 'openai/gpt-oss-20b'];
 
       for (const groqModel of modelsToTry) {
         try {
-          const response = await axios.post('https://api.groq.com/openai/v1/chat/completions', {
-            model: groqModel,
-            messages: [
-              ...(systemPrompt ? [{ role: 'system', content: systemPrompt }] : []),
-              { role: 'user', content: prompt }
-            ],
-            temperature: 0.3
-          }, {
-            headers: { 
+          const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+            method: 'POST',
+            headers: {
               Authorization: `Bearer ${activeKey}`,
               'Content-Type': 'application/json'
             },
-            timeout: 25000
+            body: JSON.stringify({
+              model: groqModel,
+              messages: [
+                ...(systemPrompt ? [{ role: 'system', content: systemPrompt }] : []),
+                { role: 'user', content: prompt }
+              ],
+              temperature: 0.3
+            })
           });
-          return response.data?.choices?.[0]?.message?.content || null;
-        } catch (modelErr) {
-          lastErr = modelErr;
-          if (modelErr.response?.status === 404) {
-            // Model not found on this tier, try next available model
-            continue;
+
+          const data = await res.json();
+          if (data.choices && data.choices[0]?.message?.content) {
+            console.log(`[AI Provider] Live lesson generation powered by Groq (${groqModel})`);
+            return data.choices[0].message.content;
           }
-          throw modelErr;
+        } catch (mErr) {
+          continue;
         }
       }
-      throw lastErr;
+      return null;
 
     } else if (resolvedProvider === 'gemini') {
-      // Try gemini-1.5-flash
       const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${activeKey}`;
       const payload = {
         contents: [
@@ -77,31 +79,37 @@ export const generateWithAI = async ({ prompt, systemPrompt, apiKey, provider = 
           maxOutputTokens: 3000
         }
       };
-      const response = await axios.post(url, payload, { timeout: 25000 });
-      return response.data?.candidates?.[0]?.content?.parts?.[0]?.text || null;
+
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+      return data.candidates?.[0]?.content?.parts?.[0]?.text || null;
 
     } else {
       // OpenAI
-      const response = await axios.post('https://api.openai.com/v1/chat/completions', {
-        model: 'gpt-4o-mini',
-        messages: [
-          ...(systemPrompt ? [{ role: 'system', content: systemPrompt }] : []),
-          { role: 'user', content: prompt }
-        ],
-        temperature: 0.3
-      }, {
-        headers: { 
+      const res = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
           Authorization: `Bearer ${activeKey}`,
           'Content-Type': 'application/json'
         },
-        timeout: 25000
+        body: JSON.stringify({
+          model: 'gpt-4o-mini',
+          messages: [
+            ...(systemPrompt ? [{ role: 'system', content: systemPrompt }] : []),
+            { role: 'user', content: prompt }
+          ],
+          temperature: 0.3
+        })
       });
-      return response.data?.choices?.[0]?.message?.content || null;
+      const data = await res.json();
+      return data.choices?.[0]?.message?.content || null;
     }
   } catch (err) {
-    const status = err.response?.status;
-    const msg = err.response?.data?.error?.message || err.message;
-    console.warn(`[AI Provider] Live API call to ${resolvedProvider} failed (Status ${status || 'unknown'}: ${msg}). Falling back to local synthesizer engine.`);
+    console.warn(`[AI Provider] Live API call failed: ${err.message}. Falling back to local synthesizer.`);
     return null;
   }
 };
